@@ -22,7 +22,6 @@ export default function AddPostForm() {
 		if (canSave) {
 			try {
 				setAddRequestStatus("pending");
-				console.log("form: ", { userId });
 				dispatch(addNewPost({ title, body: content, userId })).unwrap();
 
 				setTitle("");

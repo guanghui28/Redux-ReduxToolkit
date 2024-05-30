@@ -30,8 +30,8 @@ export default function PostsList() {
 			.slice()
 			.sort((a, b) => compareAsc(b.date, a.date));
 
-		content = orderedPosts.map((post) => (
-			<PostExcerpt key={post.id} post={post} />
+		content = orderedPosts.map((post, index) => (
+			<PostExcerpt key={post.id || index} post={post} />
 		));
 	} else if (postsStatus === "failed") {
 		content = <p>{error}</p>;
