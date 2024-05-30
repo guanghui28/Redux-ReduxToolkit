@@ -23,8 +23,38 @@ export const addNewPost = createAsyncThunk(
 	"posts/addNewPost",
 	async (initialPost) => {
 		try {
-			const res = await axios.get(POST_URL, initialPost);
+			console.log({ initialPost });
+			const res = await axios.post(POST_URL, initialPost);
+			console.log("after post: ", res);
 			return res.data;
+		} catch (error) {
+			return error.message;
+		}
+	}
+);
+
+export const updatePost = createAsyncThunk(
+	"posts/updatePost",
+	async (initialPost) => {
+		const { id } = initialPost;
+		try {
+			const res = await axios.put(`${POST_URL}/${id}`, initialPost);
+			return res.data;
+		} catch (error) {
+			// return error.message;
+			return initialPost; // only for testing Redux
+		}
+	}
+);
+
+export const deletePost = createAsyncThunk(
+	"posts/deletePost",
+	async (initialPost) => {
+		const { id } = initialPost;
+		try {
+			const res = await axios.delete(`${POST_URL}/${id}`);
+			if (res?.status === 200) return initialPost;
+			return `${res?.status}: ${res?.statusText}`;
 		} catch (error) {
 			return error.message;
 		}
@@ -83,16 +113,17 @@ export const postsSlice = createSlice({
 						rocket: 0,
 						coffee: 0,
 					};
-					post.id = post.id ? post.id : nanoid();
+
 					return post;
 				});
-				state.posts = state.posts.concat(loadedPosts);
+				state.posts = [...loadedPosts];
 			})
 			.addCase(fetchPosts.rejected, (state, action) => {
 				state.status = "failed";
 				state.error = action.error.message;
 			})
 			.addCase(addNewPost.fulfilled, (state, action) => {
+				console.log("action.payload: ", action.payload);
 				action.payload.userId = Number(action.payload.userId);
 				action.payload.date = new Date().toISOString();
 				action.payload.reactions = {
@@ -103,6 +134,24 @@ export const postsSlice = createSlice({
 					coffee: 0,
 				};
 				state.posts.push(action.payload);
+			})
+			.addCase(updatePost.fulfilled, (state, action) => {
+				if (!action.payload?.id) {
+					console.log("Something broke");
+					return;
+				}
+				const { id } = action.payload;
+				action.payload.date = new Date().toISOString();
+				const posts = state.posts.filter((post) => post.id !== id);
+				state.posts = [...posts, action.payload];
+			})
+			.addCase(deletePost.fulfilled, (state, action) => {
+				if (!action.payload?.id) {
+					console.log("Something broke");
+					return;
+				}
+				const { id } = action.payload;
+				state.posts = state.posts.filter((post) => post.id !== id);
 			});
 	},
 });
@@ -112,6 +161,9 @@ export const { postAdded, reactionAdded } = postsSlice.actions;
 export const selectAllPosts = (state) => state.posts.posts;
 export const getPostsStatus = (state) => state.posts.status;
 export const getPostsError = (state) => state.posts.error;
+
+export const selectPostById = (state, postId) =>
+	state.posts.posts.find((post) => post.id === postId);
 
 const postsReducer = postsSlice.reducer;
 export default postsReducer;
