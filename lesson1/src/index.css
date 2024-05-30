@@ -1,0 +1,30 @@
+* {
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+html {
+	font-size: 10px;
+}
+
+body {
+	font-size: 3rem;
+	display: flex;
+	height: 100vh;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+}
+
+p {
+	font-size: 4rem;
+	margin-bottom: 2rem;
+}
+
+button {
+	display: inline-block;
+	padding: 1rem 2rem;
+	font-size: 2rem;
+	margin: 1rem;
+}
