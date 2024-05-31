@@ -101,7 +101,7 @@ export default function EditPostForm() {
 					id="postTitle"
 					name="postTitle"
 					value={title}
-					onChange={(e) => setTitle(e.target.value)}
+					onChange={(e) => setTitle(Number(e.target.value))}
 				/>
 				<label htmlFor="postAuthor">Author: </label>
 				<select
