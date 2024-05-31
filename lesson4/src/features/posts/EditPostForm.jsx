@@ -1,43 +1,40 @@
 import { useId, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { deletePost, selectPostById, updatePost } from "./postsSlice";
+import { useSelector } from "react-redux";
+import {
+	useUpdatePostMutation,
+	selectPostById,
+	useDeletePostMutation,
+} from "./postsSlice";
 import { selectAllUsers } from "../users/usersSlice";
 import { useParams, useNavigate } from "react-router-dom";
 
 export default function EditPostForm() {
 	const { postId } = useParams();
-	const navigate = useNavigate();
-
 	const post = useSelector((state) => selectPostById(state, +postId));
-
 	const [title, setTitle] = useState(post?.title);
 	const [content, setContent] = useState(post?.body);
 	const [userId, setUserId] = useState(post?.userId);
-	const [requestStatus, setRequestStatus] = useState("idle");
+	const navigate = useNavigate();
 
 	const users = useSelector(selectAllUsers);
-
-	const dispatch = useDispatch();
+	const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
+	const [updatePost, { isLoading: isUpdating }] = useUpdatePostMutation();
 
 	const canSave =
-		[title, content, useId].every(Boolean) && requestStatus === "idle";
+		[title, content, useId].every(Boolean) && !isDeleting && !isUpdating;
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
 
 		if (canSave) {
 			try {
-				setRequestStatus("pending");
-				console.log("form: ", { userId });
-				dispatch(
-					updatePost({
-						id: post.id,
-						title,
-						body: content,
-						userId,
-						reactions: post.reactions,
-					})
-				).unwrap();
+				await updatePost({
+					title,
+					body: content,
+					id: post.id,
+					userId: Number(userId),
+					reactions: post.reactions,
+				}).unwrap();
 
 				setTitle("");
 				setContent("");
@@ -46,37 +43,23 @@ export default function EditPostForm() {
 				navigate(`/post/${postId}`);
 			} catch (error) {
 				console.log("failed to save the post: ", error);
-			} finally {
-				setRequestStatus("idle");
 			}
 		}
 	};
 
-	const handleDeletePost = () => {
+	const handleDeletePost = async () => {
 		if (!confirm("Are you sure to delete this post?")) {
 			return;
 		}
 		try {
-			setRequestStatus("pending");
-			dispatch(
-				deletePost({
-					id: post.id,
-					title,
-					body: content,
-					userId,
-					reactions: post.reactions,
-				})
-			).unwrap();
+			await deletePost({ id: postId }).unwrap();
 
 			setTitle("");
 			setContent("");
 			setUserId("");
-
 			navigate("/");
 		} catch (error) {
 			console.log("failed to delete the post: ", error);
-		} finally {
-			setRequestStatus("idle");
 		}
 	};
 

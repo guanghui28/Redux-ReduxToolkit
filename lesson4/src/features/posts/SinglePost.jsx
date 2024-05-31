@@ -7,7 +7,6 @@ import { Link, useParams } from "react-router-dom";
 
 export default function SinglePost() {
 	const { postId } = useParams();
-	console.log({ postId });
 
 	const post = useSelector((state) => selectPostById(state, +postId));
 
